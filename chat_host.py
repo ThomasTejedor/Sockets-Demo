@@ -1,5 +1,6 @@
 import socket
 import threading
+import cv2
 
 host = '192.168.254.52'
 port = 5000
@@ -41,8 +42,8 @@ def manageClient(client):
         except:
             #error, remove client
             removeClient(client)
-            
-
+    
+    
 def removeClient(client):
     index = clients.index(client)   #get index of client
     clients.remove(client)
@@ -53,7 +54,6 @@ def removeClient(client):
     #tell other clients who has left
     leavingMessage = name + ' has left the chat room!'
     flood(leavingMessage.encode())
-    
 
 #this loop is for accepting multiple client connections
 while True:    

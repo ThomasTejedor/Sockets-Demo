@@ -9,6 +9,11 @@ port = 5000
 client = socket.socket()
 client.connect((host,port))
 
+def sendImage():
+    if len(args) > 1 or len(args) == 0 : 
+        print("Incorrect usage try \"/SendImage (image path)\" use")
+        return
+    
 # receives message from server
 # also sends user if asked
 def receive():
@@ -23,15 +28,27 @@ def receive():
                 print(msg)
             
         except:
-            client.close();
+            client.close()
             break
 
+def tryCommand(command, args):
+    match command:
+        case "SendImage":
+            sendImage(args)
+        case _:
+            print("Command not found!")
 #waits for user input, sends to server when user presses enter    
 def send():
     while True:
         text = input('')
-        message = name + ': ' + text
-        client.send(message.encode())
+        try:
+            words = text.split()
+            if words[0].substring(0,1) == "/":
+                tryCommand(words.substring(1),words.pop(0))
+        except:
+            if text != "":
+                message = name + ': ' + text
+                client.send(message.encode())
         
 sendThread = threading.Thread(target=send)
 receiveThread = threading.Thread(target=receive)
