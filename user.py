@@ -3,7 +3,7 @@ import threading
 
 name = input("what's your name? ")
 
-host = '192.168.1.130'
+host = '192.168.254.52'
 port = 5000
 
 client = socket.socket()
