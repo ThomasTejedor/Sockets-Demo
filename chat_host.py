@@ -1,6 +1,5 @@
 import socket
 import threading
-import cv2
 
 host = '192.168.254.52'
 port = 5000
@@ -28,7 +27,7 @@ def flood(message, excludedClient = None):
             
 def handleImage(client, excludedClient = None):
     #Get the length of the image
-    length = int(client.recv(1024).decode())
+    length = int(str(client.recv(1024).decode()))
     data = b''
     
     while len(data) < length:
@@ -46,7 +45,7 @@ def manageClient(client):
     while True:
         try:
             message = client.recv(1024)
-            if message.decode == 'img':
+            if message.decode() == 'img':
                 handleImage(client)
             else:
                 flood(message)
