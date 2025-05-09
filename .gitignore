@@ -19,6 +19,8 @@ lib64/
 parts/
 sdist/
 var/
+my-venv/
+global/
 wheels/
 share/python-wheels/
 *.egg-info/
@@ -81,6 +83,9 @@ target/
 # IPython
 profile_default/
 ipython_config.py
+
+# VIM Stuff
+*.swp
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
