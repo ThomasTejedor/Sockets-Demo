@@ -8,6 +8,9 @@ name = input("what's your name? ")
 host = '192.168.254.52'
 port = 5000
 
+img_encoded = None
+img_bytes = None
+
 client = socket.socket()
 client.connect((host,port))
 
@@ -36,16 +39,10 @@ def sendImage(args):
         
         #Send img process request
         client.send(message.encode())
-        #recieve img ack 
-        print(client.recv(1024).decode())
         #send length of img
         client.send(str(len(img_bytes)).encode())
-        #recieve img ready to process
-        print(client.recv(1024).decode())
         #send image
         client.sendall(img_bytes)
-        #Image processed
-        print(client.recv(1024).decode())
         
 
 # receives message from server

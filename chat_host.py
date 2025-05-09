@@ -27,14 +27,8 @@ def flood(message, excludedClient = None):
             client.send(message)
             
 def handleImage(client, excludedClient = None):
-    ack = "Ready for Image"
-    
-    #Send acknowledgement to client
-    client.send(ack.encode())
     #Get the length of the image
     length = int(client.recv(1024).decode())
-    proc = "Processing Image"
-    client.send(proc.encode())
     data = b''
     
     while len(data) < length:
