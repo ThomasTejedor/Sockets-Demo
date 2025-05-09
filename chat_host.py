@@ -26,7 +26,24 @@ def flood(message, excludedClient = None):
         if excludedClient == None or excludedClient.getpeername()[1] != client.getpeername()[1]:
             client.send(message)
             
-            
+def handleImage(client):
+    ack = "Ready for Image"
+    
+    #Send acknowledgement to client
+    client.send(ack.encode())
+    #Get the length of the image
+    length = int(client.recv(1024).decode())
+    proc = "Processing Image"
+    client.send(proc.encode())
+    data = b''
+    
+    while len(data) < length:
+        bytes = client.recv(1024)
+        data += bytes
+    
+    for tempClient in clients:
+        if excludedClient == None or excludedClient.getpeername()[1] != client.getpeername()[1]:
+            tempClient.send("testing")
 #send to specific client
 #def send(message, client):
 
@@ -35,8 +52,11 @@ def manageClient(client):
     while True:
         try:
             message = client.recv(1024)
+            if message.decode == 'img':
+                handleImage(client)
+            else:
+                flood(message)
             
-            flood(message)
             #send message to all other clients
             
         except:
