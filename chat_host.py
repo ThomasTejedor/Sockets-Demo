@@ -26,7 +26,7 @@ def flood(message, excludedClient = None):
         if excludedClient == None or excludedClient.getpeername()[1] != client.getpeername()[1]:
             client.send(message)
             
-def handleImage(client):
+def handleImage(client, excludedClient = None):
     ack = "Ready for Image"
     
     #Send acknowledgement to client
