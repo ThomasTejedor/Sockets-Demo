@@ -16,9 +16,10 @@ class PMHandler:
     receivedUser = False
     noUser = False
 
+class ConnectionHandler:
+    connected = True
 client = socket.socket()
 client.connect((host,port))
-
 
 
 def sendImage(args):
@@ -118,7 +119,7 @@ def privateMessage(args):
 # also sends user if asked
 
 def receive():
-    while True:
+    while ConnectionHandler.connected:
         try:
             msg = client.recv(1024).decode()
             if msg == 'name?':
@@ -136,6 +137,10 @@ def receive():
                 PMHandler.receivedUser = True
             elif msg == 'noUser':
                 PMHandler.noUser = True
+            elif msg == 'inactive':
+                print("You were inactive for too long!")
+                ConnectionHandler.connected = False
+                break
             else:
                 print(msg)
             
@@ -154,8 +159,10 @@ def tryCommand(command, args):
             print("Command not found!")
 #waits for user input, sends to server when user presses enter    
 def send():
-    while True:
+    while ConnectionHandler.connected:
         text = input('')
+        if not ConnectionHandler.connected:
+            break
         try:
             #Check for command usage and split into args
             words = text.split()
