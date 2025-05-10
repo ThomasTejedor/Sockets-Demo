@@ -74,7 +74,8 @@ def handleImage(client, sendingClient = None):
             thread.start()
         
 #send to specific client
-#def send(message, client):
+def send(message, receivingClient):
+    receivingClient.send(message)
 
 #handle incoming messages from each client
 def manageClient(client):
@@ -89,6 +90,18 @@ def manageClient(client):
             #image is ready to be received
             elif message.decode() == 'imgRec':
                 imgReceived[clients.index(client)] = True
+            elif len(str(message.decode())) > 2 and message.decode()[:2] == 'pm':
+                try:
+                    index = names.index(str(message.decode()[2:]))
+                    receiver = clients[index]
+                    usr = 'usrFound'
+                    client.send(usr.encode())
+                    usrmessage = client.recv(1024) 
+                    send(usrmessage, receiver)
+
+                except:
+                    err = 'noUser'
+                    client.send(err.encode())
             else:
                 flood(message, client)
             
