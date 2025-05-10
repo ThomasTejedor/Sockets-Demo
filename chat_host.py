@@ -9,6 +9,9 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host,port))
 server.listen()
 
+#Using this admin password change to more secure password
+ADMINPASS = 'password'
+
 #list of clients
 clients = []
 
@@ -146,6 +149,12 @@ def timeoutLoop():
 thread = threading.Thread(target = timeoutLoop)
 thread.start()
 
+def adminLogin():
+    client.send('adminPass'.encode())
+    if client.recv(1024).decode() == ADMINPASS:
+        return True
+    return False
+
 #this loop is for accepting multiple client connections
 while True:    
     client, addr = server.accept()
@@ -153,7 +162,15 @@ while True:
     #prompts client for name
     client.send('name?'.encode())
     
+    authlogin = True
     name = client.recv(1024).decode()
+    if name == 'admin':
+        authLogin = adminLogin()
+    
+    if not authLogin:
+        client.send('WrongAuth'.encode())
+        continue
+
     clients.append(client)
     names.append(name)
     imgReceived.append(False)
