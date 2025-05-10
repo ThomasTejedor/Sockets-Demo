@@ -1,6 +1,5 @@
 import socket
 import threading
-import cv2
 
 host = '192.168.254.52'
 port = 5000
@@ -19,25 +18,61 @@ names = []
 #stores users time of most recent message sent
 lastActivity = []
 
+#stores users busy status
+imgReceived = []
+
 #send message to all clients
 #assume that the message is already encoded!
 def flood(message, excludedClient = None):
     for client in clients:
         if excludedClient == None or excludedClient.getpeername()[1] != client.getpeername()[1]:
             client.send(message)
-            
-def handleImage(client, excludedClient = None):
-    #Get the length of the image
-    length = int(client.recv(1024).decode())
-    data = b''
+
+#Send image to a client
+def sendImageTo(image, length, senderName, client):
     
-    while len(data) < length:
+    #send an image sending request to client with image byte length
+    msg = 'imgSent' + str(length)
+    client.send(msg.encode())
+
+    #Wait for user to receive image send request
+    while not imgReceived[clients.index(client)]:
+        () #wait
+    imgReceived[clients.index(client)] = False
+
+    #send image
+    client.sendall(image)
+
+
+#recieve image from a client and direct to correct sender
+def handleImage(client, sendingClient = None):
+    #Get the length of the image
+    length = int(str(client.recv(1024).decode()))
+    data = b''
+    #Acknowledge length
+    ack = 'ackImgLength'
+    client.send(ack.encode())
+
+    #Recieve data
+    while True:
         bytes = client.recv(1024)
         data += bytes
+        
+        if len(data) == length:
+            break
+     
+    #return name of sender client
+    name = names[clients.index(client)]
     
+    #Send to all clients
     for tempClient in clients:
-        if excludedClient == None or excludedClient.getpeername()[1] != client.getpeername()[1]:
-            tempClient.send("testing")
+        if sendingClient == None and tempClient.getpeername()[1] != client.getpeername()[1]:
+            thread = threading.Thread(target = sendImageTo, args = (data,length,name,tempClient))
+            thread.start()
+        elif sendingClient != None and sendingClient.getpeername()[1] == tempClient.getpeername()[1]: 
+            thread = threading.Thread(target = sendImageTo, args = (data,length,name,tempClient))
+            thread.start()
+        
 #send to specific client
 #def send(message, client):
 
@@ -46,10 +81,16 @@ def manageClient(client):
     while True:
         try:
             message = client.recv(1024)
-            if message.decode == 'img':
+            #image is about to be sent
+            if message.decode() == 'img':
+                ack = 'ackImgReq'
+                client.send(ack.encode())
                 handleImage(client)
+            #image is ready to be received
+            elif message.decode() == 'imgRec':
+                imgReceived[clients.index(client)] = True
             else:
-                flood(message)
+                flood(message, client)
             
             #send message to all other clients
             
@@ -63,6 +104,7 @@ def removeClient(client):
     clients.remove(client)
     name = names[index]
     names.remove(name)
+    imgReceived.remove(imgReceived[index])
     client.close()
     
     #tell other clients who has left
@@ -79,7 +121,8 @@ while True:
     name = client.recv(1024).decode()
     clients.append(client)
     names.append(name)
-    
+    imgReceived.append(False)
+
     #notify all users when a new person joins
     joinMessage = name + ' has joined the chat room!'
     
