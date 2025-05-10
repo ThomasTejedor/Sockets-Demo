@@ -4,7 +4,9 @@ import cv2
 import numpy as np
 
 name = input("what's your name? ")
-
+password = ''
+if name == 'admin':
+    password = input("password? ")
 host = '192.168.254.52'
 port = 5000
 
@@ -140,6 +142,12 @@ def receive():
             elif msg == 'inactive':
                 print("You were inactive for too long!")
                 ConnectionHandler.connected = False
+                break
+            elif msg == 'adminPass':
+                client.send(password.encode())
+            elif msg == 'WrongAuth':
+                print("Wrong password for the admin account")
+                ConnectionHandler.connection = False
                 break
             else:
                 print(msg)
