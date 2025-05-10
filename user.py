@@ -12,6 +12,10 @@ class ImageHandler:
     receivedRequest = False
     receivedLength = False
 
+class PMHandler:
+    receivedUser = False
+    noUser = False
+
 client = socket.socket()
 client.connect((host,port))
 
@@ -81,7 +85,34 @@ def receiveImage(length):
     thread = threading.Thread(target = displayImage, args=(data,))
     thread.start()
     
+        
+#send a private message
+def privateMessage(args):
+    PMHandler.noUser = False
+    PMHandler.receivedUser = False
+    if len(args) < 2:
+        print("Incorrect usage try \"/pm (user) (message)\"")
     
+    #Send server a pm request and the person pm is meant for
+    user = args.pop(0)
+    sendMsg = 'pm' + user
+    
+    client.send(sendMsg.encode())
+    #Wait to find user
+    while not PMHandler.receivedUser:
+        if PMHandler.noUser:
+            print("No user with that name!")
+            PMHandler.noUser = False
+            return
+    PMHandler.receivedUser = False
+    
+    #Concatenate name with message
+    userMessage = 'PM(' + name + '):'
+    for word in args:
+        userMessage += ' ' + word
+    
+    #Send message
+    client.send(userMessage.encode())
     
 # receives message from server
 # also sends user if asked
@@ -101,6 +132,10 @@ def receive():
             #If an img is being sent to user
             elif len(msg) > 7 and msg[:7] == 'imgSent':
                 receiveImage(int(msg[7:]))
+            elif msg == 'usrFound':
+                PMHandler.receivedUser = True
+            elif msg == 'noUser':
+                PMHandler.noUser = True
             else:
                 print(msg)
             
@@ -108,10 +143,13 @@ def receive():
             client.close()
             break
 
+
 def tryCommand(command, args):
     match command:
         case "sendImage":
             sendImage(args)
+        case "pm":
+            privateMessage(args)
         case _:
             print("Command not found!")
 #waits for user input, sends to server when user presses enter    
