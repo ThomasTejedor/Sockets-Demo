@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 host = '192.168.254.52'
 port = 5000
@@ -80,6 +81,7 @@ def send(message, receivingClient):
 #handle incoming messages from each client
 def manageClient(client):
     while True:
+        lastActivity[clients.index(client)] = time.time()
         try:
             message = client.recv(1024)
             #image is about to be sent
@@ -118,11 +120,31 @@ def removeClient(client):
     name = names[index]
     names.remove(name)
     imgReceived.remove(imgReceived[index])
+    lastActivity.remove(lastActivity[index])
     client.close()
     
     #tell other clients who has left
     leavingMessage = name + ' has left the chat room!'
     flood(leavingMessage.encode())
+
+def timeoutLoop():
+    while True:
+        current_time = time.time()
+        #timeout is for 10 minutes
+        timeout = 600
+
+        #Check every client for their activity
+        for client in clients:
+            index = clients.index(client)
+            #if last time they were active was longer than timeout kick them
+            if current_time - lastActivity[index] > timeout:
+                kickMsg = 'inactive'
+                client.send(kickMsg.encode())
+                removeClient(client)
+
+#Start loop to check for inactivity
+thread = threading.Thread(target = timeoutLoop)
+thread.start()
 
 #this loop is for accepting multiple client connections
 while True:    
@@ -135,6 +157,7 @@ while True:
     clients.append(client)
     names.append(name)
     imgReceived.append(False)
+    lastActivity.append(time.time())
 
     #notify all users when a new person joins
     joinMessage = name + ' has joined the chat room!'
