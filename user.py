@@ -20,6 +20,10 @@ class PMHandler:
 
 class ConnectionHandler:
     connected = True
+    
+class KickHandler:
+    noUser = False
+    successfulKick = False
 client = socket.socket()
 client.connect((host,port))
 
@@ -147,8 +151,20 @@ def receive():
                 client.send(password.encode())
             elif msg == 'WrongAuth':
                 print("Wrong password for the admin account")
-                ConnectionHandler.connection = False
+                ConnectionHandler.connected = False
                 break
+            elif msg == 'cannotFindUser':
+                print("Could not find that user!")
+            elif msg == 'kicked':
+                print("You have been kicked from the server")
+                ConnectionHandler.connected = False
+                break
+            elif msg == 'noPerm':
+                print("You do not have permissions to run this command!")
+            elif msg == 'kickSuccessful':
+                KickHandler.successfulKick = True
+            elif msg == 'noUserKick':
+                KickHandler.noUser = True
             else:
                 print(msg)
             
@@ -156,6 +172,26 @@ def receive():
             client.close()
             break
 
+#kick a user
+def kickUser(args):
+    #Check permissions, permissions also checked on server side
+    if name != 'admin':
+        print("No permission!")
+        return
+    
+    if len(args) == 0 or len(args) > 1:
+        print("Incorrect usage try \"/kick (user)\"")
+    
+    msg = 'kick' + args[0]
+    client.send(msg.encode())
+    
+    while not KickHandler.successfulKick:
+        if KickHandler.noUser:
+            print("No user with name: " + name)
+            return
+    
+    print("Successfully kicked " + args[0])
+    
 
 def tryCommand(command, args):
     match command:
@@ -163,6 +199,8 @@ def tryCommand(command, args):
             sendImage(args)
         case "pm":
             privateMessage(args)
+        case "kick":
+            kickUser(args)
         case _:
             print("Command not found!")
 #waits for user input, sends to server when user presses enter    
