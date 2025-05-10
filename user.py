@@ -174,6 +174,8 @@ def receive():
 
 #kick a user
 def kickUser(args):
+    KickHandler.noUser = False
+    KickHandler.successfulKick = False
     #Check permissions, permissions also checked on server side
     if name != 'admin':
         print("No permission!")
@@ -185,11 +187,13 @@ def kickUser(args):
     msg = 'kick' + args[0]
     client.send(msg.encode())
     
+    
     while not KickHandler.successfulKick:
         if KickHandler.noUser:
-            print("No user with name: " + name)
+            print("No user with name: " + args[0])
+            KickHandler.noUser = False
             return
-    
+    KickHandler.successfulKick = False
     print("Successfully kicked " + args[0])
     
 
