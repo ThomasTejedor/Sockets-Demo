@@ -107,6 +107,20 @@ def manageClient(client):
                 except:
                     err = 'noUser'
                     client.send(err.encode())
+            elif len(str(message.decode())) > 4 and message.decode()[:4] == 'kick':
+                name = names[clients.index(client)]
+                if name != 'admin':
+                    client.send('noPerm'.encode())
+                    continue
+                try:
+                    index = names.index(str(message.decode()[4:]))
+                    user = clients[index]
+                    user.send('kicked'.encode())
+                    removeClient(user)
+                    client.send('kickSuccessful'.encode())
+                except:
+                    err = 'noUserKick'
+                    client.send(err.encode())
             else:
                 flood(message, client)
             
@@ -162,7 +176,7 @@ while True:
     #prompts client for name
     client.send('name?'.encode())
     
-    authlogin = True
+    authLogin = True
     name = client.recv(1024).decode()
     if name == 'admin':
         authLogin = adminLogin()
